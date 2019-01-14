@@ -94,6 +94,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		//传入spring的配置类
 		//传入bean（虽然一般没有人会这么做）
 		register(annotatedClasses);
+		//刷新
 		refresh();
 	}
 
