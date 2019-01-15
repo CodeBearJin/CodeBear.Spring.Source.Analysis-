@@ -86,13 +86,13 @@ final class PostProcessorRegistrationDelegate {
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 
-			//循环并且装入数组postProcessorNames
 			for (String ppName : postProcessorNames) {
 				if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
 					//获得ConfigurationClassPostProcessor类，并且放到currentRegistryProcessors
 					//ConfigurationClassPostProcessor是很重要的一个类，它实现了BeanDefinitionRegistryPostProcessor接口
 					//BeanDefinitionRegistryPostProcessor接口又实现了BeanFactoryPostProcessor接口
-					//ConfigurationClassPostProcessor是极其重要的类，用来处理配置类（有两种情况 一种是传统意义上的配置类，一种是普通的bean）的各种逻辑
+					//ConfigurationClassPostProcessor是极其重要的类
+					//用来处理配置类（有两种情况 一种是传统意义上的配置类，一种是普通的bean）的各种逻辑
 					currentRegistryProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
 					//把name放到processedBeans
 					processedBeans.add(ppName);
