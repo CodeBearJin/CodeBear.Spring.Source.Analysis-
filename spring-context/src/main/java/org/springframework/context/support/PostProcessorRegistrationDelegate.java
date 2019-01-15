@@ -35,6 +35,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
@@ -75,20 +76,40 @@ final class PostProcessorRegistrationDelegate {
 			// uninitialized to let the bean factory post-processors apply to them!
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
+			//一个临时变量，用来装载BeanDefinitionRegistryPostProcessor
+			//而BeanDefinitionRegistry继承了PostProcessorBeanFactoryPostProcessor
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
+			// 获得实现BeanDefinitionRegistryPostProcessor接口的类的BeanName:org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+			// 并且装入数组postProcessorNames，我理解一般情况下，只会找到一个
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
+
+			//循环并且装入数组postProcessorNames
 			for (String ppName : postProcessorNames) {
 				if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+					//获得ConfigurationClassPostProcessor类，并且放到currentRegistryProcessors
+					//ConfigurationClassPostProcessor是很重要的一个类，它实现了BeanDefinitionRegistryPostProcessor接口
+					//BeanDefinitionRegistryPostProcessor接口又实现了BeanFactoryPostProcessor接口
+					//ConfigurationClassPostProcessor是极其重要的类，用来处理配置类（有两种情况 一种是传统意义上的配置类，一种是普通的bean）的各种逻辑
 					currentRegistryProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
+					//把name放到processedBeans
 					processedBeans.add(ppName);
 				}
 			}
+
+			//处理排序
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
+
+			//合并Processors
 			registryProcessors.addAll(currentRegistryProcessors);
+
+			//可以理解为执行ConfigurationClassPostProcessor的postProcessBeanDefinitionRegistry方法
+			//Spring热插播的体现，像ConfigurationClassPostProcessor就相当于一个组件，Spring很多事情就是交给组件去管理
+			//如果不想用这个组件，直接把注册组件的那一步去掉就可以
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
+
 			currentRegistryProcessors.clear();
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
