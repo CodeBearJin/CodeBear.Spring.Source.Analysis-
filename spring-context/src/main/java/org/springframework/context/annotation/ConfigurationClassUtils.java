@@ -114,9 +114,9 @@ abstract class ConfigurationClassUtils {
 		}
 
 
-		if (isFullConfigurationCandidate(metadata)) {    //配置类会进入到这里，有标记位代表已经处理过了
+		if (isFullConfigurationCandidate(metadata)) {    //配置类会进入到这里，然后标记已经被处理过了
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
-		} else if (isLiteConfigurationCandidate(metadata)) {//普通bean会进入到这里，有标记位代表已经处理过了
+		} else if (isLiteConfigurationCandidate(metadata)) {//普通bean会进入到这里，然后标记已经被处理过了
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		} else {
 			return false;
