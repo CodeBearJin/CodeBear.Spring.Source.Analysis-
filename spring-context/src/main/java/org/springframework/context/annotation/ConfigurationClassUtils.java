@@ -114,9 +114,14 @@ abstract class ConfigurationClassUtils {
 		}
 
 
-		if (isFullConfigurationCandidate(metadata)) {    //配置类会进入到这里，然后标记已经被处理过了
+		if (isFullConfigurationCandidate(metadata)) {
+			//配置类会进入到这里，然后标记已经被处理过了,具体的检查是判断有没有@Configuration注解
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
-		} else if (isLiteConfigurationCandidate(metadata)) {//普通bean会进入到这里，然后标记已经被处理过了
+		} else if (isLiteConfigurationCandidate(metadata)) {
+			//普通bean会进入到这里，然后标记已经被处理过了
+			// 具体的检查是没有@Component，@ComponentScan，@Import，@ImportResource注解
+			// 但是实测@Servie等注解也能满足条件，猜想在此判断更深层次的方法中有其他判断
+			// 也说明了其实@Servie 和 @Component 是同一种注解，其实名称不同
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		} else {
 			return false;
