@@ -132,8 +132,9 @@ public class AnnotatedBeanDefinitionReader {
 	 * e.g. {@link Configuration @Configuration} classes
 	 */
 	public void register(Class<?>... annotatedClasses) {
-		//循环注册bean
+		//因为我们可以传入多个annotatedClasses，所以需要循环注册annotatedClasses
 		for (Class<?> annotatedClass : annotatedClasses) {
+			//注册bean
 			registerBean(annotatedClass);
 		}
 	}
@@ -223,7 +224,6 @@ public class AnnotatedBeanDefinitionReader {
 			return;
 		}
 
-		//这个方法目前不知道是干嘛的
 		abd.setInstanceSupplier(instanceSupplier);
 
 		//解析bean的作用域，如果没有设置的话，默认为单例
@@ -257,6 +257,7 @@ public class AnnotatedBeanDefinitionReader {
 				}
 			}
 		}
+
 		for (BeanDefinitionCustomizer customizer : definitionCustomizers) {
 			customizer.customize(abd);
 		}

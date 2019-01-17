@@ -55,19 +55,32 @@ final class PostProcessorRegistrationDelegate {
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		Set<String> processedBeans = new HashSet<>();
 
+		//beanFactory是DefaultListableBeanFactory，是BeanDefinitionRegistry的实现类，所以肯定满足if
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+
+			//regularPostProcessors 用来存放BeanFactoryPostProcessor，
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
+
+			//registryProcessors 用来存放BeanDefinitionRegistryPostProcessor
+			//BeanDefinitionRegistryPostProcessor扩展了BeanFactoryPostProcessor
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
+			//循环传进来的beanFactoryPostProcessors，正常情况下，beanFactoryPostProcessors肯定没有数据
+			//因为beanFactoryPostProcessors是获得手动添加的，而不是spring扫描的
+			//只有手动调用annotationConfigApplicationContext.addBeanFactoryPostProcessor(XXX)才会有数据
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
+				//判断postProcessor是不是BeanDefinitionRegistryPostProcessor，因为BeanDefinitionRegistryPostProcessor
+				//扩展了BeanFactoryPostProcessor，所以这里先要判断是不是BeanDefinitionRegistryPostProcessor
+				//是的话，就装到registryProcessors里面去
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
 					registryProcessors.add(registryProcessor);
 				}
-				else {
+
+				else {//不是的话，就装到regularPostProcessors
 					regularPostProcessors.add(postProcessor);
 				}
 			}
@@ -77,7 +90,7 @@ final class PostProcessorRegistrationDelegate {
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
 			//一个临时变量，用来装载BeanDefinitionRegistryPostProcessor
-			//而BeanDefinitionRegistry继承了PostProcessorBeanFactoryPostProcessor
+			//BeanDefinitionRegistry继承了PostProcessorBeanFactoryPostProcessor
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
@@ -110,6 +123,7 @@ final class PostProcessorRegistrationDelegate {
 			//如果不想用这个组件，直接把注册组件的那一步去掉就可以
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 
+			//因为currentRegistryProcessors是一个临时变量，所以需要清除
 			currentRegistryProcessors.clear();
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.

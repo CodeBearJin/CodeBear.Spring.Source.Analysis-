@@ -870,9 +870,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			} else {
 				//beanDefinitionMap是Map<String, BeanDefinition>，
-				//这里就是把beanName作为key，描述bean的数据作为value，推到map里面
-				//里面有一些spring内置的bean非常重要
-				//是在一开始初始化bean读取器中放进去的
+				//这里就是把beanName作为key，ScopedProxyMode作为value，推到map里面
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 
 				//beanDefinitionNames就是一个List<String>,这里就是把beanName放到List中去
