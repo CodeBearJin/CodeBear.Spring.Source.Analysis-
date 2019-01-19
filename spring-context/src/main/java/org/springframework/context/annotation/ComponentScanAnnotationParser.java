@@ -77,7 +77,7 @@ class ComponentScanAnnotationParser {
 		//扫描器，还记不记在new AnnotationConfigApplicationContext的时候
 		//会调用AnnotationConfigApplicationContext的构造方法
 		//构造方法里面有一句 this.scanner = new ClassPathBeanDefinitionScanner(this);
-		//当时说这个对象不重要，这里就是证明了。常规用法中，实际上执行扫描的是这个scanner对象
+		//当时说这个对象不重要，这里就是证明了。常规用法中，实际上执行扫描的是只会是这里的scanner对象
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 
