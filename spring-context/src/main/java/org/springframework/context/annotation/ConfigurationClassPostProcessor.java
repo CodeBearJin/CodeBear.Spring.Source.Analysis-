@@ -267,7 +267,18 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		for (String beanName : candidateNames) {
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);//根据beanName获得BeanDefinition
 
-			//内部有两个标记位来标记是否已经处理过了
+			// 内部有两个标记位来标记是否已经处理过了
+			// 这里会引发一连串知识盲点
+			// 当我们注册配置类的时候，可以不加Configuration注解，直接使用Component ComponentScan Import ImportResource注解，称之为Lite配置类
+			// 如果加了Configuration注解，就称之为Full配置类
+			// 如果我们注册了Lite配置类，我们getBean这个配置类，会发现它就是原本的那个配置类
+			// 如果我们注册了Full配置类，我们getBean这个配置类，会发现它已经不是原本那个配置类了，而是已经被cgilb代理的类了
+			// 写一个A类，其中有一个构造方法，打印出“你好”
+			// 再写一个配置类，里面有两个bean注解的方法
+			// 其中一个方法new了A 类，并且返回A的对象，把此方法称之为getA
+			// 第二个方法又调用了getA方法
+			// 如果配置类是Lite配置类，会发现打印了两次“你好”，也就是说A类被new了两次
+			// 如果配置类是Full配置类，会发现只打印了一次“你好”，也就是说A类只被new了一次，因为这个类被cgilb代理了，方法已经被改写
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef) ||
 					ConfigurationClassUtils.isLiteConfigurationClass(beanDef)) {
 				if (logger.isDebugEnabled()) {
@@ -275,7 +286,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				}
 			}
 
-			//判断是否为配置类（有两种情况 一种是传统意义上的配置类，一种是普通的bean），满足条件，加入到configCandidates
+			//判断是否为配置类（有两种情况 一种是传统意义上的配置类，一种是普通的bean），
+			//在这个方法内部，会做判断，这个配置类是Full配置类，还是Lite配置类，并且做上标记
+			//满足条件，加入到configCandidates
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
@@ -334,7 +347,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
-			this.reader.loadBeanDefinitions(configClasses);
+			this.reader.loadBeanDefinitions(configClasses);//直到这一步才把Import的类 转换成BeanDefinition
 			alreadyParsed.addAll(configClasses);
 
 			candidates.clear();
