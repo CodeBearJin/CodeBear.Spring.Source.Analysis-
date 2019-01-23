@@ -137,8 +137,7 @@ final class PostProcessorRegistrationDelegate {
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
 			// 再次根据BeanDefinitionRegistryPostProcessor获得BeanName，看这个BeanName是否已经被执行过了，有没有实现Ordered接口
 			// 如果没有被执行过，也实现了Ordered接口的话，把对象推送到currentRegistryProcessors，名称推送到processedBeans
-			// 如果没有实现Ordered接口的话，这里不把数据加到currentRegistryProcessors，processedBeans中
-			// 后续再做处理
+			// 如果没有实现Ordered接口的话，这里不把数据加到currentRegistryProcessors，processedBeans中，后续再做处理
 			// 这里才可以获得我们定义的实现了BeanDefinitionRegistryPostProcessor的Bean
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
@@ -161,8 +160,8 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			// Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
-			// 下面的代码暂时不知道作用，猜想spring为了保险，防止在执行代码的过程中
-			// 又新建了一个BeanFactoryProcessor，所以这里再执行一次
+			// 下面的代码暂时不知道作用，猜想spring为了保险，防止在执行上面的代码的过程中
+			// 又新来了一个BeanFactoryProcessor，所以这里再执行一次
 			boolean reiterate = true;
 			while (reiterate) {
 				reiterate = false;

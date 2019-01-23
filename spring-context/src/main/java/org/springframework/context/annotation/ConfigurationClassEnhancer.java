@@ -74,6 +74,7 @@ import org.springframework.util.ReflectionUtils;
 class ConfigurationClassEnhancer {
 
 	// The callbacks to use. Note that these callbacks must be stateless.
+	// 制定了三种策略
 	private static final Callback[] CALLBACKS = new Callback[] {
 			new BeanMethodInterceptor(),
 			new BeanFactoryAwareMethodInterceptor(),
@@ -120,10 +121,14 @@ class ConfigurationClassEnhancer {
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
+		//Cglib是基于继承实现动态代理的，此时Full配置类就是父类
 		enhancer.setSuperclass(configSuperClass);
+		//设置接口，EnhancedConfiguration接口继承了BeanFactoryAware类
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
+		//设置名称策略
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
+		//设置代理策略，其中主要新增了一个BeanFactory的类型的字段，用来接收BeanFactoryAware给的BeanFactory
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
@@ -219,6 +224,7 @@ class ConfigurationClassEnhancer {
 
 		@Override
 		protected ClassGenerator transform(ClassGenerator cg) throws Exception {
+			//新增一个public类型的字段，字段名为$$beanFactory，BeanFactory类型的
 			ClassEmitterTransformer transformer = new ClassEmitterTransformer() {
 				@Override
 				public void end_class() {
@@ -272,8 +278,10 @@ class ConfigurationClassEnhancer {
 		@Override
 		@Nullable
 		public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+			//找到$$beanFactory字段
 			Field field = ReflectionUtils.findField(obj.getClass(), BEAN_FACTORY_FIELD);
 			Assert.state(field != null, "Unable to find generated BeanFactory field");
+			//设置$$beanFactory的值，$$beanFactory的值是通过setBeanFactory回调得到的
 			field.set(obj, args[0]);
 
 			// Does the actual (non-CGLIB) superclass implement BeanFactoryAware?
@@ -316,8 +324,10 @@ class ConfigurationClassEnhancer {
 		@Nullable
 		public Object intercept(Object enhancedConfigInstance, Method beanMethod, Object[] beanMethodArgs,
 					MethodProxy cglibMethodProxy) throws Throwable {
-
+			//获得BeanFactory
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
+
+			//获得BeanName
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
 
 			// Determine whether this bean is a scoped-proxy
@@ -336,6 +346,7 @@ class ConfigurationClassEnhancer {
 			// proxy that intercepts calls to getObject() and returns any cached bean instance.
 			// This ensures that the semantics of calling a FactoryBean from within @Bean methods
 			// is the same as that of referring to a FactoryBean within XML. See SPR-6602.
+			// 下面是对FactoryBean的处理，因为FactoryBean除了本身是bean之外，自己还会生产出来一个Bean,所以还需要进行一层代理
 			if (factoryContainsBean(beanFactory, BeanFactory.FACTORY_BEAN_PREFIX + beanName) &&
 					factoryContainsBean(beanFactory, beanName)) {
 				Object factoryBean = beanFactory.getBean(BeanFactory.FACTORY_BEAN_PREFIX + beanName);
@@ -347,7 +358,7 @@ class ConfigurationClassEnhancer {
 					return enhanceFactoryBean(factoryBean, beanMethod.getReturnType(), beanFactory, beanName);
 				}
 			}
-
+			//如果beanMethod是spring执行的（不是被其他方法调用的），就执行原本的beanMethod方法
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
 				// The factory is calling the bean method in order to instantiate and register the bean
 				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
@@ -364,7 +375,7 @@ class ConfigurationClassEnhancer {
 				}
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
-
+			//如果是被其他方法调用而执行的，执行下面的这一行代码，方法内部就是从BeanFactory中取出Bean，而不调用本身的方法
 			return resolveBeanReference(beanMethod, beanMethodArgs, beanFactory, beanName);
 		}
 
@@ -442,8 +453,10 @@ class ConfigurationClassEnhancer {
 		}
 
 		private ConfigurableBeanFactory getBeanFactory(Object enhancedConfigInstance) {
+			//找到名称为$$beanFactory的字段
 			Field field = ReflectionUtils.findField(enhancedConfigInstance.getClass(), BEAN_FACTORY_FIELD);
 			Assert.state(field != null, "Unable to find generated bean factory field");
+			//获得BeanFactory
 			Object beanFactory = ReflectionUtils.getField(field, enhancedConfigInstance);
 			Assert.state(beanFactory != null, "BeanFactory has not been injected into @Configuration class");
 			Assert.state(beanFactory instanceof ConfigurableBeanFactory,

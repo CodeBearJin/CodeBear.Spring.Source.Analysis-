@@ -7,7 +7,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 
 @Configuration
-@ComponentScan
 public class AppConfig {
 
+	@Bean
+	public OtherService orderService(){
+		return new OtherService();
+	}
+
+	@Bean
+	public Test test(){
+		orderService();
+		return new Test();
+	}
 }
