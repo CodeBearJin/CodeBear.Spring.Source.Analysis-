@@ -98,7 +98,7 @@ final class PostProcessorRegistrationDelegate {
 			// 并且装入数组postProcessorNames，我理解一般情况下，只会找到一个
 			// 这里又有一个坑，为什么我自己创建了一个实现BeanDefinitionRegistryPostProcessor接口的类，也打上了@Component注解
 			// 配置类也加上了@Component注解，但是这里却没有拿到
-			// 因为知道这一步，Spring还没有去扫描，扫描是在ConfigurationClassPostProcessor类中完成的，也就是下面的第一个
+			// 因为直到这一步，Spring还没有去扫描，扫描是在ConfigurationClassPostProcessor类中完成的，也就是下面的第一个
 			// invokeBeanDefinitionRegistryPostProcessors方法
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
