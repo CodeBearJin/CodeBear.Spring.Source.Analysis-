@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 
 @Configuration
-@Import(MyService.class)
+@ComponentScan
 public class AppConfig {
 
 }

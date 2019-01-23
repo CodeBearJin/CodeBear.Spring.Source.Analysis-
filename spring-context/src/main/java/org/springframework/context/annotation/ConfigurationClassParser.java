@@ -166,7 +166,7 @@ class ConfigurationClassParser {
 		for (BeanDefinitionHolder holder : configCandidates) {
 			BeanDefinition bd = holder.getBeanDefinition();//获得BeanDefinition
 			try {
-				//如果是获得BeanDefinition是AnnotatedBeanDefinition的实例，自定义的会进入到这里
+				//如果获得BeanDefinition是AnnotatedBeanDefinition的实例
 				if (bd instanceof AnnotatedBeanDefinition) {
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				} else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
@@ -313,6 +313,7 @@ class ConfigurationClassParser {
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations
+		//处理@ImportResource注解
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
@@ -324,6 +325,7 @@ class ConfigurationClassParser {
 			}
 		}
 
+		//处理@Bean的方法，可以看到获得了带有@Bean的方法后，不是马上转换成BeanDefinition，而是先用一个set接收
 		// Process individual @Bean methods
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
@@ -608,7 +610,7 @@ class ConfigurationClassParser {
 	//ConfigurationClass中的Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars中去
 	//如果是Import ImportSelector 或者Import 普通类，会先把数据加到ConfigurationClassParser中的
 	//Map<ConfigurationClass, ConfigurationClass> configurationClasses
-	//不管是哪种情况，最终都不是马上转换成BeanDefinition，还是先有一个Map去接收
+	//不管是哪种情况，最终都不是马上转换成BeanDefinition，都是先有一个Map去接收
 	private void processImports(ConfigurationClass configClass, SourceClass currentSourceClass,
 								Collection<SourceClass> importCandidates, boolean checkForCircularImports) {
 

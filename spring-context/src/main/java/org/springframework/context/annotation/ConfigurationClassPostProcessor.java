@@ -251,6 +251,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
+		//此方法比较难度，主要作用是如果是Full配置类，会被cglib代理
 		enhanceConfigurationClasses(beanFactory);
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
@@ -347,7 +348,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
-			this.reader.loadBeanDefinitions(configClasses);//直到这一步才把Import的类 转换成BeanDefinition
+			this.reader.loadBeanDefinitions(configClasses);//直到这一步才把Import的类，@Bean 转换成BeanDefinition
 			alreadyParsed.addAll(configClasses);
 
 			candidates.clear();
@@ -392,6 +393,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 */
 	public void enhanceConfigurationClasses(ConfigurableListableBeanFactory beanFactory) {
 		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<>();
+
+		//循环BeanDefinitionNames，根据BeanDefinitionName来获得BeanDefinition
+		//判断是否是一个Full配置类，如果是的话，把数据加入到configBeanDefs中去
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef)) {
@@ -408,6 +412,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				configBeanDefs.put(beanName, (AbstractBeanDefinition) beanDef);
 			}
 		}
+
+		//如果configBeanDefs中没有数据，说明没有Full配置类，直接返回
 		if (configBeanDefs.isEmpty()) {
 			// nothing to enhance -> return immediately
 			return;
@@ -420,7 +426,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			beanDef.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 			try {
 				// Set enhanced subclass of the user-specified bean class
-				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);
+				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);//通过BeanDefinition获得类
 				if (configClass != null) {
 					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 					if (configClass != enhancedClass) {
