@@ -182,6 +182,7 @@ class ConfigurationClassParser {
 			}
 		}
 
+		//执行DeferredImportSelector
 		processDeferredImportSelectors();
 	}
 
