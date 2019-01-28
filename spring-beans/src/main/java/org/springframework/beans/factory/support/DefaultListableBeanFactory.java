@@ -870,7 +870,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			} else {
 				//beanDefinitionMap是Map<String, BeanDefinition>，
-				//这里就是把beanName作为key，ScopedProxyMode作为value，推到map里面
+				//这里就是把beanName作为key，beanDefinition作为value，推到map里面
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 
 				//beanDefinitionNames就是一个List<String>,这里就是把beanName放到List中去

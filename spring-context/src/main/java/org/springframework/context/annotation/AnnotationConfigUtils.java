@@ -144,8 +144,7 @@ public class AnnotationConfigUtils {
 	 */
 	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
-
-		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
+		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);//把beanFactory拿出来
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
@@ -156,8 +155,6 @@ public class AnnotationConfigUtils {
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
-
-		//RootBeanDefinition可以理解为spring内置的bean描述器
 
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
@@ -217,7 +214,7 @@ public class AnnotationConfigUtils {
 	private static BeanDefinitionHolder registerPostProcessor(
 			BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
 
-		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);//设置角色级别，ROLE_INFRASTRUCTURE代表是spring内部的
 		registry.registerBeanDefinition(beanName, definition);
 		return new BeanDefinitionHolder(definition, beanName);
 	}
