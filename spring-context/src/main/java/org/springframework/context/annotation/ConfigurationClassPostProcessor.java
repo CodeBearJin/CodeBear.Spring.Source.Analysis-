@@ -252,8 +252,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
-		//此方法比较难度，主要作用是如果是Full配置类，会被cglib代理
+		//此方法比较有难度，内部主要是如果是Full配置类，会被cglib代理
 		enhanceConfigurationClasses(beanFactory);
+		//添加一个BeanPostProcessor
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 
@@ -428,13 +429,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		for (Map.Entry<String, AbstractBeanDefinition> entry : configBeanDefs.entrySet()) {
 			AbstractBeanDefinition beanDef = entry.getValue();
 			// If a @Configuration class gets proxied, always proxy the target class
-//			//给BeanDefinition设置一个标记，代表是通过类进行代理的，也就是cglib代理
+			// 给BeanDefinition设置一个标记，代表是通过类进行代理的，也就是cglib代理
 			beanDef.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 			try {
 				// Set enhanced subclass of the user-specified bean class
 				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);//通过BeanDefinition获得类
 				if (configClass != null) {
-					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
+					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);//增强，核心
 					if (configClass != enhancedClass) {
 						if (logger.isDebugEnabled()) {
 							logger.debug(String.format("Replacing bean definition '%s' existing class '%s' with " +

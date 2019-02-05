@@ -257,7 +257,7 @@ final class PostProcessorRegistrationDelegate {
 			ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
 
 		//获得BeanPostProcessor的实例名称，放入postProcessorNames数组
-		//为什么在我的记忆中，还注册了其他的BeanPostProcessor，但是这里却没有
+		//为什么在记忆中，还注册了其他的BeanPostProcessor，但是这里却没有获得到
 		//因为这里是去org.springframework.beans.factory.support.DefaultListableBeanFactory#beanDefinitionNames中寻找
 		//还有一些BeanPostProcessor，并没有放到beanDefinitionNames里面去
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
@@ -267,6 +267,8 @@ final class PostProcessorRegistrationDelegate {
 		// a bean is not eligible for getting processed by all BeanPostProcessors.
 		int beanProcessorTargetCount = beanFactory.getBeanPostProcessorCount() + 1 + postProcessorNames.length;
 
+		//BeanPostProcessorChecker最终实现了BeanPostProcessor接口，不重要，主要是判断当前bean是否执行了所有的BeanPostProcessor
+		//如果不是的话，就打印一句话
 		beanFactory.addBeanPostProcessor(new BeanPostProcessorChecker(beanFactory, beanProcessorTargetCount));
 
 		// Separate between BeanPostProcessors that implement PriorityOrdered,
