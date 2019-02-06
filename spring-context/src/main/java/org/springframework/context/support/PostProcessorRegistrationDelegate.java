@@ -258,7 +258,7 @@ final class PostProcessorRegistrationDelegate {
 
 		//获得BeanPostProcessor的实例名称，放入postProcessorNames数组
 		//为什么在记忆中，还注册了其他的BeanPostProcessor，但是这里却没有获得到
-		//因为这里是去org.springframework.beans.factory.support.DefaultListableBeanFactory#beanDefinitionNames中寻找
+		//因为这里是根据org.springframework.beans.factory.support.DefaultListableBeanFactory#beanDefinitionNames寻找
 		//还有一些BeanPostProcessor，并没有放到beanDefinitionNames里面去
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
 
@@ -307,8 +307,10 @@ final class PostProcessorRegistrationDelegate {
 		//处理排序
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
 		//注册priorityOrderedPostProcessors中的BeanPostProcessor
+		//这里说的注册是把BeanPostProcessor添加到org.springframework.beans.factory.support.AbstractBeanFactory#beanPostProcessors
 		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 
+		//注册orderedPostProcessors中的BeanPostProcessor
 		// Next, register the BeanPostProcessors that implement Ordered.
 		List<BeanPostProcessor> orderedPostProcessors = new ArrayList<>();
 		for (String ppName : orderedPostProcessorNames) {
@@ -321,6 +323,7 @@ final class PostProcessorRegistrationDelegate {
 		sortPostProcessors(orderedPostProcessors, beanFactory);
 		registerBeanPostProcessors(beanFactory, orderedPostProcessors);
 
+		//注册nonOrderedPostProcessors中的BeanPostProcessor
 		// Now, register all regular BeanPostProcessors.
 		List<BeanPostProcessor> nonOrderedPostProcessors = new ArrayList<>();
 		for (String ppName : nonOrderedPostProcessorNames) {
@@ -332,6 +335,7 @@ final class PostProcessorRegistrationDelegate {
 		}
 		registerBeanPostProcessors(beanFactory, nonOrderedPostProcessors);
 
+		//注册internalPostProcessors中的BeanPostProcessor
 		// Finally, re-register all internal BeanPostProcessors.
 		sortPostProcessors(internalPostProcessors, beanFactory);
 		registerBeanPostProcessors(beanFactory, internalPostProcessors);
