@@ -1117,7 +1117,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Candidate constructors for autowiring?
+		//	利用AutowiredAnnotationBeanPostProcessor去寻找构造方法，以下代码相当复杂
+		//	简单的来说，就是当一个类中如果有且只有无参的构造方法，那么毫无疑问，那么调用instantiateBean
+		//	如果一个类中有无参的构造方法和有参构造方法，同时又没有手动给定构造方法的值，那么调用instantiateBean
+		// 	如果一个类中没有无参的构造方法，调用autowireConstructor
+		//	如果一个类中有无的参构造方法和有参构造方法，同时手动给定了构造方法的值，那么调用autowireConstructor
+		//	当然，这里这里总结的不严谨，只是大概DEBUG了下
+		//	还有其他情况，但是在实际开发中，一般也不会给好几个构造方法，所以不去深入研究了
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
+		//ConstructorArgumentValues的解释：可以实现BeanFactoryProcessor接口，并且交给spring管理，手动传入构造方法的参数
+		//类似：beanFactory.getBeanDefinition("myService").getConstructorArgumentValues().addGenericArgumentValue("com.codebear.Student");
+		//然后在beanName为myService对应的Class里面定义一个参数为Class的构造方法，就可以把com.codebear.Student传进去了，
+		//这样hasConstructorArgumentValues就有值了
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args))  {
 			return autowireConstructor(beanName, mbd, ctors, args);
@@ -1189,7 +1200,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeansException {
 
 		if (beanClass != null && hasInstantiationAwareBeanPostProcessors()) {
-			//循环所有的BeanPostProcessor,其中AutowiredAnnotationBeanPostProcessor极为重要，是创建对象用的
+			//循环所有的BeanPostProcessor,其中AutowiredAnnotationBeanPostProcessor极为重要，是寻找构造方法用的
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
@@ -1327,12 +1338,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		boolean hasInstAwareBpps = hasInstantiationAwareBeanPostProcessors();
 		boolean needsDepCheck = (mbd.getDependencyCheck() != AbstractBeanDefinition.DEPENDENCY_CHECK_NONE);
 
+
 		if (hasInstAwareBpps || needsDepCheck) {
 			if (pvs == null) {
 				pvs = mbd.getPropertyValues();
 			}
 			PropertyDescriptor[] filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 			if (hasInstAwareBpps) {
+				//循环BeanPostProcessors，@Autowired自动注入，就是用的AutowiredAnnotationBeanPostProcessor
 				for (BeanPostProcessor bp : getBeanPostProcessors()) {
 					if (bp instanceof InstantiationAwareBeanPostProcessor) {
 						InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;

@@ -7,14 +7,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-@Service
+@Component
 public class MyService {
 
-
-	public MyService(StuService service11111111) {
-		System.out.println(service11111111);
-	}
-
-
+	@Autowired
+	public OtherService otherService;
 
 }

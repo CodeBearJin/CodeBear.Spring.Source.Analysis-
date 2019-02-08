@@ -114,9 +114,11 @@ class ConstructorResolver {
 		BeanWrapperImpl bw = new BeanWrapperImpl();
 		this.beanFactory.initBeanWrapper(bw);
 
-		Constructor<?> constructorToUse = null;
+		//确定了构造方法和使用的参数就可以newInstance了
+
+		Constructor<?> constructorToUse = null;//使用哪个构造方法
 		ArgumentsHolder argsHolderToUse = null;
-		Object[] argsToUse = null;
+		Object[] argsToUse = null;//使用的参数
 
 		if (explicitArgs != null) {
 			argsToUse = explicitArgs;
@@ -140,6 +142,7 @@ class ConstructorResolver {
 
 		if (constructorToUse == null) {
 			// Need to resolve the constructor.
+			//如果传进来的构造方法不为空，且AutowireMode为构造方法
 			boolean autowiring = (chosenCtors != null ||
 					mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
 			ConstructorArgumentValues resolvedValues = null;
