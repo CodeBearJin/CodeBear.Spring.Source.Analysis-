@@ -239,11 +239,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
-		final String beanName = transformedBeanName(name);
+		final String beanName = transformedBeanName(name);//拿到beanName，因为factoryBean的beanName有些特殊，所以需要进行处理
 		Object bean;
 
-		// Eagerly check singleton cache for manually registered singletons.
+		//Eagerly check singleton cache for manually registered singletons.
+		//很重要，方法内部主要是尝试从singletonObjects拿到对象
+		//这个方法也参与了解决循环依赖，用到了三个Map：singletonObjects singletonFactories earlySingletonObjects 和 一个Set：singletonsCurrentlyInCreation
 		Object sharedInstance = getSingleton(beanName);
+
 		if (sharedInstance != null && args == null) {
 			if (logger.isDebugEnabled()) {
 				if (isSingletonCurrentlyInCreation(beanName)) {
@@ -260,6 +263,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
+			// 一般情况下，不会成立，这里是判断当前正在创建的是不是Prototype，如果是就抛出一个异常
+			//前面已经判断过了，只有是singleton才会进到这个大方法
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
@@ -312,6 +317,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+
+					//getSingleton中的第二个参数类型是ObjectFactory<?>，是一个函数式接口，不会立刻执行，而是在
+					//getSingleton方法中，调用ObjectFactory的getObject，才会执行createBean
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);

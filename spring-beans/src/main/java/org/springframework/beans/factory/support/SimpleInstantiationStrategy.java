@@ -61,7 +61,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
 		// Don't override the class with CGLIB if no overrides.
 		if (!bd.hasMethodOverrides()) {
-			Constructor<?> constructorToUse;
+			Constructor<?> constructorToUse;//使用哪个构造方法
 			synchronized (bd.constructorArgumentLock) {
 				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse == null) {
@@ -75,7 +75,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 									(PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
 						}
 						else {
-							constructorToUse =	clazz.getDeclaredConstructor();
+							constructorToUse =	clazz.getDeclaredConstructor();//获得构造方法
 						}
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
 					}

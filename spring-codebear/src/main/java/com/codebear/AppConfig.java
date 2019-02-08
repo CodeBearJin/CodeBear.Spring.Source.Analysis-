@@ -11,10 +11,6 @@ import javax.annotation.PostConstruct;
 @Configuration
 @ComponentScan
 public class AppConfig {
-	@PostConstruct
-	public void init(){
-		System.out.println("1111");
 
-	}
 
 }
