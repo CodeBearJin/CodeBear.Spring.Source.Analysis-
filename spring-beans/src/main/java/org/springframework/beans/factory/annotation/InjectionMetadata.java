@@ -81,8 +81,9 @@ public class InjectionMetadata {
 	public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 		Collection<InjectedElement> checkedElements = this.checkedElements;
 		Collection<InjectedElement> elementsToIterate =
-				(checkedElements != null ? checkedElements : this.injectedElements);
+				(checkedElements != null ? checkedElements : this.injectedElements);//需要自动装配的元素
 		if (!elementsToIterate.isEmpty()) {
+			//循环需要自动装配的元素
 			for (InjectedElement element : elementsToIterate) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Processing injected element of bean '" + beanName + "': " + element);
