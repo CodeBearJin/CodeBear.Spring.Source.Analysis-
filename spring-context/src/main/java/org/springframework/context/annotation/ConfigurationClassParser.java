@@ -284,7 +284,7 @@ class ConfigurationClassParser {
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 
-		//如果没有打上ComponentScan，或者被@Condition条件带过，就不再进入这个if
+		//如果没有打上@ComponentScan，或者被@Condition条件跳过，就不再进入这个if
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			//循环处理componentScans
@@ -300,13 +300,14 @@ class ConfigurationClassParser {
 						bdCand = holder.getBeanDefinition();
 					}
 					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
+						//递归调用，因为可能组件类有被@Bean标记的方法，或者组件类本身也有ComponentScan等注解
 						parse(bdCand.getBeanClassName(), holder.getBeanName());
 					}
 				}
 			}
 		}
 
-		// Process any @Import annotations
+		//Process any @Import annotations
 		//处理@Import注解
 		//@Import注解是spring中很重要的一个注解，Springboot大量应用这个注解
 		//@Import三种类，一种是Import普通类，一种是Import ImportSelector，还有一种是Import ImportBeanDefinitionRegistrar
@@ -609,9 +610,6 @@ class ConfigurationClassParser {
 	//所以又需要递归调用
 	//如果Import ImportBeanDefinitionRegistrar就跑到了第二个if，还是会执行Aware接口方法，这里终于没有递归了，会把数据放到
 	//ConfigurationClass中的Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars中去
-	//如果是Import ImportSelector 或者Import 普通类，会先把数据加到ConfigurationClassParser中的
-	//Map<ConfigurationClass, ConfigurationClass> configurationClasses
-	//不管是哪种情况，最终都不是马上转换成BeanDefinition，都是先有一个Map去接收
 	private void processImports(ConfigurationClass configClass, SourceClass currentSourceClass,
 								Collection<SourceClass> importCandidates, boolean checkForCircularImports) {
 
