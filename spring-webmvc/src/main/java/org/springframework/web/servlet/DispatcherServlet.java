@@ -280,6 +280,9 @@ public class DispatcherServlet extends FrameworkServlet {
 		// This is currently strictly internal and not meant to be customized
 		// by application developers.
 		try {
+			//读取DispatcherServlet.properties配置文件，并且加载到defaultStrategies
+			//这个配置文件非常重要，里面是装载DispatcherServlet的各种组件的
+			//像HandlerMapping HandlerAdapter 等等，都是在这个配置文件中进行定义的
 			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
 			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 		}
@@ -963,6 +966,8 @@ public class DispatcherServlet extends FrameworkServlet {
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				//得到Handler，有三种方式定义Controller，除了我们最常用的，在类上加@Controller，还有其他两种方式
+				//但是其他两种方式一般不会使用，因为需要实现一个接口，一个Controller中只能有一个Action
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1181,6 +1186,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Nullable
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		//handlerMappings是一个List<HandlerMapping>，默认有两个元素，它是哪里被初始化的呢？
 		if (this.handlerMappings != null) {
 			for (HandlerMapping hm : this.handlerMappings) {
 				if (logger.isTraceEnabled()) {
