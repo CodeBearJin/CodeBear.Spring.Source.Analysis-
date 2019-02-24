@@ -922,6 +922,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			//核心
 			doDispatch(request, response);
 		}
 		finally {
@@ -957,6 +958,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				//判断是否是文件上传的请求
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
