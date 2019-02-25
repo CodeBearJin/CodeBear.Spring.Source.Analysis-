@@ -497,12 +497,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
+	//初始化策略，或者说是初始化组件
 	protected void initStrategies(ApplicationContext context) {
-		initMultipartResolver(context);
+		initMultipartResolver(context);//初始化文件上传组件
 		initLocaleResolver(context);
 		initThemeResolver(context);
-		initHandlerMappings(context);
-		initHandlerAdapters(context);
+		initHandlerMappings(context);//初始化HandlerMappings
+		initHandlerAdapters(context);//初始化HandlerAdapters
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
 		initViewResolvers(context);
@@ -516,6 +517,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	private void initMultipartResolver(ApplicationContext context) {
 		try {
+			//如果做过文件上传的话，应该对一个强制的规定比较迷茫，就是为什么BeanName必须是multipartResolver。这里就是原因
 			this.multipartResolver = context.getBean(MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using MultipartResolver [" + this.multipartResolver + "]");
@@ -580,11 +582,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>If no HandlerMapping beans are defined in the BeanFactory for this namespace,
 	 * we default to BeanNameUrlHandlerMapping.
 	 */
+	//初始化HandlerMapping组件
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
 
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			//从spring容器中取，默认情况下会取出来5个
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
@@ -966,18 +970,31 @@ public class DispatcherServlet extends FrameworkServlet {
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
-				//得到Handler，有三种方式定义Controller，除了我们最常用的，在类上加@Controller，还有其他两种方式
-				//但是其他两种方式一般不会使用，因为需要实现一个接口，一个Controller中只能有一个Action
+				//获得HandlerExecutionChain，有三种方式定义Controller，除了我们最常用的，在类上加@Controller，还有其他两种方式，自行百度
+				//getHandler里面内部会循环handlerMappings，获得HandlerExecutionChain
+				//这里需要进行科普，为什么handlerMappings后面有个s，因为它是一个集合
+				//为什么是集合，因为在SpringMVC中，对于不同的请求（请求不同的资源），或者不同的Contoller定义方式等等
+				//获得HandlerExecutionChain的方式都是不同的，所以需要循环handlerMappings，来获得HandlerExecutionChain
+				//如果请求的是@Controller，获得的HandlerExecutionChain，会带上 Controller+Action，这样后面就可以通过反射去调用方法了
+				//HandlerExecutionChain还会带上拦截器
+				//所以getHandler里面，即会找到Handler，也会找到拦截器
+				//对于现在前后端分离的项目来说，可能SpringMVC有些组件已经不是很重要了
+				//但是HandlerMapping组件和HandlerAdapter组件的地位是不会改变的
 				mappedHandler = getHandler(processedRequest);
+
+				//如果没有mappedHandler
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				//获得HandlerAdapter，里面是循环handlerAdapters，HandlerAdapter里面有一个isSupport方法，来判断是否支持Handler
+				//如果支持就返回此HandlerAdapter
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
+				//获得请求方式
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
 				if (isGet || "HEAD".equals(method)) {
@@ -990,10 +1007,12 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				//前置拦截器，拦截器是在getHandler方法中找到的
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
+				//执行handle
 				// Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
@@ -1002,6 +1021,8 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+
+				//后置拦截器
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1186,7 +1207,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Nullable
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
-		//handlerMappings是一个List<HandlerMapping>，默认有两个元素，它是哪里被初始化的呢？
+		//handlerMappings是一个List<HandlerMapping>
 		if (this.handlerMappings != null) {
 			for (HandlerMapping hm : this.handlerMappings) {
 				if (logger.isTraceEnabled()) {
