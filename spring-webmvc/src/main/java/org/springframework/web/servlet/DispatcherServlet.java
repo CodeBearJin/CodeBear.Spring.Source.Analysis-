@@ -1014,6 +1014,12 @@ public class DispatcherServlet extends FrameworkServlet {
 
 				//执行handle
 				// Actually invoke the handler.
+				//mv:ModelAndView ,如果返回的是视图的话，mv不为空
+				//这里又需要进行一个科普，一般来说，SpringMVC的主流程是 先判断是否是文件上传请求，然后交给HandlerMapper组件，获得HandlerExecutionChain，
+				//然后继续交给HandlerAdapter处理，获得ModelView，
+				//然后又甩锅给ViewResolver，用来解析视图名称，查到对应的页面，最后呈现，
+				//但是在前后端分离的项目中，往往返回的是JSON，这里的ModelView是NULL，在下面的processDispatchResult方法中会判断ModelView是否是NULL，
+				//如果ModelView是NULL，就不会进行解析视图名称，更不会去查到对应的页面，并且渲染了
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1092,6 +1098,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 		}
 
+		//是否需要页面呈现
 		// Did the handler return a view to render?
 		if (mv != null && !mv.wasCleared()) {
 			render(mv, request, response);
